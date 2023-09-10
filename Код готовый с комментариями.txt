@@ -1,0 +1,100 @@
+using System.Text.Json;
+using System.Net;
+
+public class Prog {
+    public static string Get(string url)    //функция получения данных с сайта
+    {
+        var web = new WebClient();
+        return web.DownloadString(url);
+    }
+
+    public static void Main()
+    {
+        string url = "https://raw.githubusercontent.com/thewhitesoft/student-2023-assignment/main/data.json";
+        string data = Get(url);     //получение data.json в виде строки
+
+        List<string> datas = new List<string>();    //список для сообщений пользователей
+        string addition_string = "";            //строка, в которой собирается сообщение до передачи готового
+                                                //сообщения в datas
+        int number = 0;
+        int i = 1;                  //индекс символа в строке
+        while (i < data.Length)     //цикл для разделения строки data на отдельные сообщения
+        {
+            if (data[i-1] == '"' && number == 0 && data[i] != ',')
+            {
+                number = 1;
+                addition_string += Convert.ToString(data[i]);
+            }
+            else if (data[i] == '"' && number == 1)
+            {
+                number = 0;
+                datas.Add(addition_string);
+                addition_string = "";
+            }
+            else if (number == 1)
+            {
+                addition_string += Convert.ToString(data[i]);
+            }
+            i++;
+        }
+        //Данные о перестановках
+        string[,] replacement = { { "Ha-haaa, hacked you", "I doubted if I should ever come back" },
+                                  { "sdshdjdskfm sfjsdif jfjfidjf", "Somewhere ages and ages hence:" },
+                                  { "1", "l" },
+                                  { "Emptry... or NOT!", null },
+                                  { "d12324344rgg6f5g6gdf2ddjf", "wood" },
+                                  { "Random text, yeeep", "took" },
+                                  { "Bla-bla-bla-blaaa, just some RANDOM tExT", null },
+                                  { "parentheses - that is a smart word", "the better claim" },
+                                  { "sdshdjdskfm sfjsdif jfjfidjf", "Somewhere ages and ages hence:" },
+                                  { "Emptry... or NOT!", "Had worn" },
+                                  { "Skooby-dooby-doooo", "knowing how way leads on" },
+                                  { "sdshdjdskfm sfjsdif jfjfidjf", "Somewhere ages and ages hence:" },
+                                  { "An other text", null },
+                                  { "Skooby-dooby-doooo", "knowing how way" }};
+
+        List<string> result = new List<string>();       //список для исправленных сообщений
+        for (int j = 0; j < datas.Count; j++)           //цикл для исправления сообщений (проход по сообщениям)
+        {
+            bool flag = true;           //предполагаем, что в строке были перестановки
+            while (flag)                //пока все перестановки не будут исправлены
+            {
+                string source = " ";        //строка для исходника перестановки
+                int countSource = 0;        //счетчик перестановки
+                int addNumber = 0;          //номер использованной перестановки
+                for (int k = 0; k < replacement.Length / 2; k++)        //цикл для исправления сообщений (работа с перестановками)
+                {
+                    if (datas[j].IndexOf(replacement[k, 0]) != -1)
+                    {
+                        source = replacement[k, 1];
+                        countSource++;
+                        addNumber = k;
+                    }
+                }
+                if (countSource == 0)       //в сообщении нет перестановок
+                {
+                    result.Add(datas[j]);
+                    flag = false;
+                }
+                else if (source != null)        //исправление сообщения
+                {
+                    datas[j] = datas[j].Replace(replacement[addNumber, 0], replacement[addNumber, 1]);
+                }
+                else flag = false;      //этого сообщения не было
+            }
+        }
+
+        //Создание файла-результата
+        try
+        {
+            string fileName = "result.json";
+            string jsonString = JsonSerializer.Serialize(result);
+            File.WriteAllText(fileName, jsonString);
+            Console.WriteLine("Файл \"result.json\" создан! Расположение: \\App1\\bin\\Debug\\net6.0\\result.json");
+        }
+        catch (Exception ex) 
+        { 
+            Console.WriteLine(ex.Message);
+        }
+    }
+}
